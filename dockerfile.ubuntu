@@ -1,0 +1,10 @@
+# Используем официальный образ Ubuntu
+FROM ubuntu:20.04
+
+# Устанавливаем Python 3 и необходимые пакеты
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    apt-get clean
+
+# Задаем команду, которая будет выполняться при запуске контейнера
+CMD ["bash", "-c", "sleep 1000"]

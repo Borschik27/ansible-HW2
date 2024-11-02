@@ -1,0 +1,45 @@
+---
+- name: Install Vector
+  hosts: vector-01
+  become: true
+  vars:
+    vector_version: "0.42.0"
+    vector_package: "vector_{{ vector_version }}-1_amd64.deb"
+    vector_url: "https://github.com/vectordotdev/vector/releases/download/v{{ vector_version }}/{{ vector_package }}"
+    vector_install_path: "/etc/vector"
+
+  tasks:
+    - name: Install dependencies
+      become: true
+      ansible.builtin.apt:
+        name: 
+          - systemctl
+          - sudo
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - net-tools
+        update_cache: yes
+
+    - name: Download Vector deb package
+      ansible.builtin.get_url:
+        url: "{{ vector_url }}"
+        dest: "/tmp/{{ vector_package }}"
+
+    - name: Install Vector
+      ansible.builtin.apt:
+        deb: "/tmp/{{ vector_package }}"
+        state: present
+
+    - name: Deploy Vector configuration
+      ansible.builtin.template:
+        src: templ/vector_config.j2
+        dest: "{{ vector_install_path }}/vector.yaml"
+      notify: Restart Vector
+
+  handlers:
+    - name: Restart Vector
+      ansible.builtin.systemd:
+        name: vector
+        state: restarted
